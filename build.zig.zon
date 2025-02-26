@@ -24,8 +24,8 @@
     // internet connectivity.
     .dependencies = .{
         .ztring = .{
-            .url = "git+https://github.com/mmnessim/zig-strings.git#342e8eac87a39c1d952fcd2dfe604ab4db38d146",
-            .hash = "12200e9a2a2343cee2b074f6e4b1cd7d1d8899e2d6593e69f91b0c77e921369e3c2f",
+            .url = "git+https://github.com/mmnessim/ztring.git#5dccdb9a604ea577bf607dcf611987ac7295ae43",
+            .hash = "1220df4ebbe26d44c8d0f10cca57432ade3d9c9adf980973a770ccbc4b37e8225ed7",
         },
     },
     .paths = .{
