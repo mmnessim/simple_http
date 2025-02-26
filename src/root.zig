@@ -27,14 +27,22 @@ pub fn GET(url: []const u8, alloc: std.mem.Allocator, headerBuffer: []u8, bodyBu
     return result;
 }
 
-pub fn POST(url: []const u8, reqBody: []const u8, alloc: std.mem.Allocator, headerBuffer: []u8, bodyBuffer: []u8) ![]const u8 {
+pub const BodyContentType = enum { json, text };
+
+pub fn POST(url: []const u8, reqBody: []const u8, contentType: BodyContentType, alloc: std.mem.Allocator, headerBuffer: []u8, bodyBuffer: []u8) ![]const u8 {
     var client = std.http.Client{ .allocator = alloc };
     defer client.deinit();
+
+    var contentTypeValue: []const u8 = undefined;
+    switch (contentType) {
+        .json => contentTypeValue = "text/json",
+        .text => contentTypeValue = "text/plain",
+    }
 
     const uri = try std.Uri.parse(url);
     var req = client.open(.POST, uri, .{
         .server_header_buffer = headerBuffer,
-        .headers = .{ .user_agent = .{ .override = USERAGENT }, .content_type = .{ .override = "text/plain" } },
+        .headers = .{ .user_agent = .{ .override = USERAGENT }, .content_type = .{ .override = contentTypeValue } },
     }) catch |err| {
         std.debug.print("Error: {}\n", .{err});
         return err;
