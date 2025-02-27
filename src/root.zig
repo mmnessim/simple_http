@@ -27,7 +27,11 @@ pub fn GET(url: []const u8, alloc: std.mem.Allocator, headerBuffer: []u8, bodyBu
     return result;
 }
 
-pub const BodyContentType = enum { json, text };
+pub const BodyContentType = enum {
+    json,
+    text,
+    form_urlencoded,
+};
 
 pub fn POST(url: []const u8, reqBody: []const u8, contentType: BodyContentType, alloc: std.mem.Allocator, headerBuffer: []u8, bodyBuffer: []u8) ![]const u8 {
     var client = std.http.Client{ .allocator = alloc };
@@ -36,7 +40,9 @@ pub fn POST(url: []const u8, reqBody: []const u8, contentType: BodyContentType, 
     var contentTypeValue: []const u8 = undefined;
     switch (contentType) {
         .json => contentTypeValue = "text/json",
+        .application_json => contentTypeValue = "application/json",
         .text => contentTypeValue = "text/plain",
+        .form_urlencoded => contentTypeValue = "application/x-www-form-urlencoded",
     }
 
     const uri = try std.Uri.parse(url);
