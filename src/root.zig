@@ -29,13 +29,16 @@ pub fn GET(url: []const u8, alloc: std.mem.Allocator, headerBuffer: []u8, bodyBu
 
 pub const BodyContentType = enum {
     json,
+    application_json,
     text,
     form_urlencoded,
 };
 
-pub fn POST(url: []const u8, reqBody: []const u8, contentType: BodyContentType, alloc: std.mem.Allocator, headerBuffer: []u8, bodyBuffer: []u8) ![]const u8 {
+pub fn POST(url: []const u8, reqBody: []const u8, contentType: BodyContentType, alloc: std.mem.Allocator) ![]const u8 {
     var client = std.http.Client{ .allocator = alloc };
     defer client.deinit();
+    var headerBuf: [1024 * 1024]u8 = undefined;
+    var bodyBuf: [4096 * 1024]u8 = undefined;
 
     var contentTypeValue: []const u8 = undefined;
     switch (contentType) {
@@ -46,10 +49,17 @@ pub fn POST(url: []const u8, reqBody: []const u8, contentType: BodyContentType, 
     }
 
     const uri = try std.Uri.parse(url);
-    var req = client.open(.POST, uri, .{
-        .server_header_buffer = headerBuffer,
-        .headers = .{ .user_agent = .{ .override = USERAGENT }, .content_type = .{ .override = contentTypeValue } },
-    }) catch |err| {
+    var req = client.open(
+        .POST,
+        uri,
+        .{
+            .server_header_buffer = &headerBuf,
+            .headers = .{
+                .user_agent = .{ .override = USERAGENT },
+                .content_type = .{ .override = contentTypeValue },
+            },
+        },
+    ) catch |err| {
         std.debug.print("Error: {}\n", .{err});
         return err;
     };
@@ -64,10 +74,10 @@ pub fn POST(url: []const u8, reqBody: []const u8, contentType: BodyContentType, 
 
     std.debug.print("status={d}\n", .{req.response.status});
 
-    const bodyLen = req.reader().readAll(bodyBuffer) catch |err| {
+    const bodyLen = req.reader().readAll(&bodyBuf) catch |err| {
         std.debug.print("Error: {}\n", .{err});
         return err;
     };
-    const result = bodyBuffer[0..bodyLen];
+    const result = bodyBuf[0..bodyLen];
     return result;
 }
